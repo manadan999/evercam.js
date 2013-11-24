@@ -5,8 +5,11 @@
     <script src='../src/evercam.snapshot.js'></script>
   </head>
   <body>
+
     <img id='stream3' />
     <img evercam='stream4' refresh='3000' />
+    <img evercam='stream5' refresh='3000' />
+
     <script>
       $(document).ready(function() {
 
@@ -14,7 +17,7 @@
 
           $('#stream3').evercam('snapshot', {
             name: 'stream3',
-            refresh: 50000
+            refresh: 1000
           });
 
       });

@@ -10,13 +10,18 @@ window.Evercam = window.Evercam || {
 
 Evercam.Snapshot = function(name) {
 
-  var _name = name;
-  var _isUp = null, _needsAuth = null;
+  var _isUp = null;
+  var _needsAuth = null;
+
   this.timestamp = 0;
+  this.name = name;
 
   var fetchSnapshotData = function() {
     var snapshotsUrl = Evercam.apiUrl +
-      '/streams/' + _name + '/snapshots';
+      '/streams/' + name + '/snapshots';
+
+    _isUp = false;
+    _needsAuth = false;
 
     jQuery.ajax({
       url: snapshotsUrl,
@@ -46,6 +51,14 @@ Evercam.Snapshot = function(name) {
 
     return _isUp;
   };
+
+  this.needsAuth = function() {
+    if(null == _needsAuth) {
+      fetchSnapshotData();
+    }
+
+    return _needsAuth;
+  }
 
   this.imgUrl = function() {
     if(null == _data) {

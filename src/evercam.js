@@ -10,21 +10,24 @@
     var $img = $(this);
     var snapshot = new Evercam.Snapshot(settings.name);
 
-    $img.on('load error', function() {
-      if(settings.refresh > 0) {
-        var now = new Date().getTime();
-        var previous = now - snapshot.timestamp;
-        var delay = settings.refresh - previous;
-        setTimeout(updateImage, delay);
-      }
-    });
-
     var updateImage = function() {
       $img.attr('src', snapshot.imgUrl());
     }
 
+    // check img auto refresh
+    $img.on('load', function() {
+      if(settings.refresh > 0) {
+        var loading = new Date().getTime() - snapshot.timestamp;
+        var delay = settings.refresh - loading;
+        setTimeout(updateImage, delay);
+      }
+    }).on('error', updateImage);
+
+    // only if alive
     if(snapshot.isUp()) {
       updateImage();
+    } else if(snapshot.needsAuth()) {
+      alert(snapshot.name + ' requires authorization to view');
     }
 
     return this;
@@ -34,16 +37,18 @@
   $(window).load(function() {
     $.each($('img[evercam]'), function(i, e) {
       var $img = $(e);
-      var name = $img.attr('evercam');
-      var rate = Number($img.attr('refresh'));
 
-      if(NaN == rate) {
-        rate = 0;
+      var name = $img.attr('evercam');
+      var refresh = Number($img.attr('refresh'));
+
+      // ensure number
+      if(NaN == refresh) {
+        refresh = 0;
       }
 
       $img.evercam('snapshot', {
         name: name,
-        refresh: rate
+        refresh: refresh
       });
     });
   });
