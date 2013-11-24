@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src='../src/evercam.js'></script>
+    <script src='../src/evercam.snapshot.js'></script>
+  </head>
+  <body>
+    <img id='stream3' />
+    <img evercam='stream4' refresh='3000' />
+    <script>
+      $(document).ready(function() {
+
+          Evercam.setApiUrl('http://localhost:9393/v1');
+
+          $('#stream3').evercam('snapshot', {
+            name: 'stream3',
+            refresh: 50000
+          });
+
+      });
+    </script>
+  </body>
+</html>
+
