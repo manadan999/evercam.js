@@ -21,7 +21,9 @@
         var delay = settings.refresh - loading;
         setTimeout(updateImage, delay);
       }
-    }).on('error', updateImage);
+    }).on('error', updateImage).on('abort', function() {
+      alert('abort');
+    });
 
     // only if alive
     if(snapshot.isUp()) {

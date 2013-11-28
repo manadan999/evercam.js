@@ -10,68 +10,69 @@ window.Evercam = window.Evercam || {
 
 Evercam.Snapshot = function(name) {
 
-  var _isUp = null;
-  var _needsAuth = null;
-
+  this.up = null;
+  this.auth = null;
+  this.data = null;
   this.timestamp = 0;
   this.name = name;
 
-  var fetchSnapshotData = function() {
-    var snapshotsUrl = Evercam.apiUrl +
-      '/streams/' + name + '/snapshots';
+};
 
-    _isUp = false;
-    _needsAuth = false;
+Evercam.Snapshot.prototype.fetchSnapshotData = function() {
+  var snapshotsUrl = Evercam.apiUrl +
+    '/streams/' + this.name + '/snapshots';
 
-    jQuery.ajax({
-      url: snapshotsUrl,
-      async: false,
-      xhrFields: {
-        withCredentials: true
+  this.up = false;
+  this.auth = false;
+  var self = this;
+
+  jQuery.ajax({
+    url: snapshotsUrl,
+    async: false,
+    xhrFields: {
+      withCredentials: true
+    },
+    statusCode: {
+      200: function(resp) {
+        self.up = true;
+        self.data = resp;
       },
-      statusCode: {
-        200: function(resp) {
-          _isUp = true;
-          _data = resp;
-        },
-        401: function(resp) {
-          _needsAuth = true;
-        },
-        404: function(resp) {
-          _isUp = false;
-        }
+      401: function(resp) {
+        self.auth = true;
+      },
+      404: function(resp) {
+        self.up = false;
       }
-    });
-  };
-
-  this.isUp = function() {
-    if(null == _isUp) {
-      fetchSnapshotData();
     }
+  });
+};
 
-    return _isUp;
-  };
-
-  this.needsAuth = function() {
-    if(null == _needsAuth) {
-      fetchSnapshotData();
-    }
-
-    return _needsAuth;
+Evercam.Snapshot.prototype.isUp = function() {
+  if(null == this.up) {
+    this.fetchSnapshotData();
   }
 
-  this.imgUrl = function() {
-    if(null == _data) {
-      return '#';
-    }
+  return this.up;
+};
 
-    this.timestamp = new Date().getTime();
-    var uri = _data.uris.external + '/' +
-      _data.formats.jpg.path + '?' +
-      this.timestamp;
+Evercam.Snapshot.prototype.needsAuth = function() {
+  if(null == this.auth) {
+    this.fetchSnapshotData();
+  }
 
-    return uri;
-  };
+  return this.auth;
+};
 
+Evercam.Snapshot.prototype.imgUrl = function() {
+  if(null == this.data) {
+    return '#';
+  }
+
+  this.timestamp = new Date().getTime();
+  var uri = this.data.uris.external + '/' +
+    this.data.formats.jpg.path + '?' +
+    this.timestamp;
+
+  return uri;
 };
 
