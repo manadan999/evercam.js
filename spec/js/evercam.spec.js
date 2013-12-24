@@ -85,5 +85,27 @@ describe("Evercam", function() {
 
   });
 
+  describe("Vendors", function() {
+
+    it("all", function(done) {
+       subject.Vendor.all(
+        function (vendors) {
+          expect(vendors.length).toBe(2);
+          done();
+        }
+      );
+    });
+
+    it("by mac", function(done) {
+       subject.Vendor.by_mac('00:73:57',
+        function (vendors) {
+          expect(vendors.length).toBe(1);
+          done();
+        }
+      );
+    });
+
+  });
+
 });
 

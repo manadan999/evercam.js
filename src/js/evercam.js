@@ -68,6 +68,26 @@
           callback(data.streams);
         });
       }
+    },
+
+    Vendor: {
+      url: function(ext){
+        if (typeof(ext) === 'undefined') ext = '';
+        else ext = '/' + ext;
+        return window.Evercam.apiUrl + '/vendors' + ext;
+      },
+
+      all: function (callback) {
+        $.getJSON(this.url(), function(data) {
+          callback(data.vendors);
+        });
+      },
+
+      by_mac: function (mac, callback) {
+        $.getJSON(this.url(mac), function(data) {
+          callback(data.vendors);
+        });
+      }
     }
 
   };
