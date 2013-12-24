@@ -61,5 +61,29 @@ describe("Evercam", function() {
 
   });
 
+  describe("Users", function() {
+
+    it("create", function(done) {
+       subject.User.create({forename: 'Joe', lastname: 'Bloggs', email: 'joe.bloggs@example.org',
+          username: 'joeyb', country: 'us'},
+        function (user) {
+          expect('joeyb').toBe(user.id);
+          expect('Joe').toBe(user.forename);
+          done();
+        }
+      );
+    });
+
+    it("streams", function(done) {
+       subject.User.streams('joeyb',
+        function (streams) {
+          expect(streams.length).toBe(1);
+          done();
+        }
+      );
+    });
+
+  });
+
 });
 

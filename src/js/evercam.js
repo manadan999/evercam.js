@@ -48,6 +48,26 @@
           callback(data.streams[0]);
         });
       }
+    },
+
+    User: {
+      url: function(ext){
+        if (typeof(ext) === 'undefined') ext = '';
+        else ext = '/' + ext;
+        return window.Evercam.apiUrl + '/users' + ext;
+      },
+
+      create: function (params, callback) {
+        $.post(this.url(), params, function(data) {
+          callback(data.users[0]);
+        });
+      },
+
+      streams: function (uid, callback) {
+        $.getJSON(this.url(uid + '/streams'), function(data) {
+          callback(data.streams);
+        });
+      }
     }
 
   };
