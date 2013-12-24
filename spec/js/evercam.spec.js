@@ -45,5 +45,21 @@ describe("Evercam", function() {
 
   });
 
+  describe("Streams", function() {
+
+    it("create", function(done) {
+       subject.Stream.create({'id': 'teststream', 'endpoints': ['http://127.0.0.1:8080'],
+                                       'is_public': true, "snapshots": {'jpg': '/onvif/snapshot'},
+                                       'auth': {'basic': {'username': 'user1', 'password': 'abcde'}}},
+        function (stream) {
+          expect('teststream').toBe(stream.id);
+          expect(true).toBe(stream.is_public);
+          done();
+        }
+      );
+    });
+
+  });
+
 });
 
