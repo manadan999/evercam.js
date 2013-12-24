@@ -88,6 +88,20 @@
           callback(data.vendors);
         });
       }
+    },
+
+    Snapshot: {
+      url: function(stream, ext){
+        if (typeof(ext) === 'undefined') ext = '';
+        else ext = '/' + ext;
+        return window.Evercam.Stream.url(stream) + '/snapshots' + ext;
+      },
+
+      new: function (stream, callback) {
+        $.getJSON(this.url(stream, 'new'), function(data) {
+          callback(data);
+        });
+      }
     }
 
   };

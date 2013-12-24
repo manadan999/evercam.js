@@ -61,6 +61,20 @@ describe("Evercam", function() {
 
   });
 
+  describe("Snapshots", function() {
+
+    it("new", function(done) {
+       subject.Snapshot.new('test',
+        function (user) {
+          expect('uris').not.toBe(undefined);
+          expect('formats').not.toBe(undefined);
+          expect('auth').not.toBe(undefined);
+          done();
+        }
+      );
+    });
+  });
+
   describe("Users", function() {
 
     it("create", function(done) {
