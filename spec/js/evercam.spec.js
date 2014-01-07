@@ -13,8 +13,8 @@ describe("Evercam", function() {
     });
 
     it("can be overridden to another url", function() {
-      subject.setApiUrl('http://localhost:3000/v1');
-      expect(subject.apiUrl).toBe('http://localhost:3000/v1');
+      subject.setApiUrl('http://ec2-54-194-83-178.eu-west-1.compute.amazonaws.com:3000/v1');
+      expect(subject.apiUrl).toBe('http://ec2-54-194-83-178.eu-west-1.compute.amazonaws.com:3000/v1');
     });
 
   });
