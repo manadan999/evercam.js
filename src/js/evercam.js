@@ -5,7 +5,7 @@
   window.Evercam = {
 
     apiUrl: 'https://api.evercam.io/v1',
-    proxyUrl: 'http://localhost:3030/',
+    proxyUrl: 'http://ec2-54-194-83-178.eu-west-1.compute.amazonaws.com:3030/',
 
     setApiUrl: function(url) {
       this.apiUrl = url;
@@ -87,6 +87,8 @@
 
   };
 
+  // STREAM PLUGIN DEFINITION
+  // =======================
 
   Evercam.Stream.prototype.url = function (ext) {
     if (typeof(ext) === 'undefined') ext = '';
@@ -115,33 +117,14 @@
       }
       self.onUp();
     });
-
   };
 
   Evercam.Stream.prototype.fetchSnapshotData = function () {
     var self = this;
-      self.data =  {
-      "id": "teststream",
-      "owner": "joeyb",
-      "created_at": 1387370779,
-      "updated_at": 1387370779,
-      "endpoints": ["http://89.101.225.158:8105"],
-      "is_public": true,
-      "snapshots": {
-        "jpg": "/onvif/snapshot"
-      },
-      "auth": {
-        "basic": {
-          "username": "admin",
-          "password": "mehcam"
-        }
-      }
-    }
-    this.selectEndpoint();
-
-//    this.by_id(this.name, function(stream) {
-      //self.data = stream;
-//    })
+    this.by_id(this.name, function(stream) {
+      self.data = stream;
+      self.selectEndpoint();
+    })
   };
 
   function testCROS(url, callback) {
@@ -208,14 +191,16 @@
     var uri = '';
     this.timestamp = new Date().getTime();
     if (this.useProxy) {
-      uri = Evercam.proxyUrl + 'snapshot?url=' +  this.endpoint +
-        this.data.snapshots.jpg + '?' +
+      uri = Evercam.proxyUrl + 'snapshot?url=' +  this.endpoint + this.data.snapshots.jpg + '?' +
         this.timestamp + '&auth=' + base64Encode(this.data.auth.basic.username + ":" + this.data.auth.basic.password);
     } else {
       uri = this.endpoint + this.data.snapshots.jpg;
     }
     return uri;
   };
+
+  // EVERCAM PLUGIN DEFINITION
+  // =======================
 
   $.fn.evercam = function(type, opts) {
 
@@ -241,15 +226,15 @@
       if(settings.refresh > 0) {
         var loading = new Date().getTime() - stream.timestamp;
         var delay = settings.refresh - loading;
-        setTimeout(updateImage, delay);
+        watcher = setTimeout(updateImage, delay);
       }
 
     }).on('abort', function() {
       console.log('abort');
+      clearTimeout(watcher);
     });
 
     stream.isUp(function() {
-      console.log('update');
       updateImage();
     });
 
