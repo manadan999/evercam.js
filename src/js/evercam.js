@@ -90,19 +90,19 @@
   // STREAM PLUGIN DEFINITION
   // =======================
 
-  Evercam.Stream.prototype.url = function (ext) {
+  Evercam.Stream.url = function (ext) {
     if (typeof(ext) === 'undefined') ext = '';
     else ext = '/' + ext;
     return window.Evercam.apiUrl + '/streams' + ext;
   };
 
-  Evercam.Stream.prototype.by_id = function (id, callback) {
+  Evercam.Stream.by_id = function (id, callback) {
     $.getJSON(this.url(id), function (data) {
       callback(data.streams[0]);
     });
   };
 
-  Evercam.Stream.prototype.create = function (params, callback) {
+  Evercam.Stream.create = function (params, callback) {
     $.post(this.url(), params, function (data) {
       callback(data.streams[0]);
     });
@@ -121,7 +121,7 @@
 
   Evercam.Stream.prototype.fetchSnapshotData = function () {
     var self = this;
-    this.by_id(this.name, function(stream) {
+    Evercam.Stream.by_id(this.name, function(stream) {
       self.data = stream;
       self.selectEndpoint();
     })
@@ -132,6 +132,7 @@
 
     $.ajax({
       url: url,
+      timeout: 2000,
       xhrFields: {
         withCredentials: true
       },

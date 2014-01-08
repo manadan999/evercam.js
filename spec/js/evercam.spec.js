@@ -59,20 +59,14 @@ describe("Evercam", function() {
       );
     });
 
-  });
-
-  describe("Snapshots", function() {
-
-    it("new", function(done) {
-       subject.Snapshot.new('test',
-        function (user) {
-          expect('uris').not.toBe(undefined);
-          expect('formats').not.toBe(undefined);
-          expect('auth').not.toBe(undefined);
+    it('get by id', function (done) {
+      subject.Stream.by_id('teststream', function (stream) {
+          expect(stream).not.toBe(undefined);
           done();
         }
       );
     });
+
   });
 
   describe("Users", function() {
