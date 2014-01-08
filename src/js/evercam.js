@@ -37,20 +37,6 @@
       }
     },
 
-    Stream: {
-      url: function(ext){
-        if (typeof(ext) === 'undefined') ext = '';
-        else ext = '/' + ext;
-        return window.Evercam.apiUrl + '/streams' + ext;
-      },
-
-      create: function(params, callback) {
-        $.post(this.url(), params, function(data) {
-          callback(data.streams[0]);
-        });
-      }
-    },
-
     User: {
       url: function(ext){
         if (typeof(ext) === 'undefined') ext = '';
@@ -91,53 +77,91 @@
       }
     },
 
-    Snapshot: function (name) {
+    Stream: function (name) {
       this.data = null;
       this.timestamp = 0;
+      this.endpoint = null;
       this.name = name;
+      this.useProxy = true;
     }
 
   };
 
-  Evercam.Snapshot.prototype.url = function (stream, ext) {
+
+  Evercam.Stream.prototype.url = function (ext) {
     if (typeof(ext) === 'undefined') ext = '';
     else ext = '/' + ext;
-    return window.Evercam.Stream.url(stream) + '/snapshots' + ext;
+    return window.Evercam.apiUrl + '/streams' + ext;
   };
 
-  // Can't use 'new'
-  Evercam.Snapshot.prototype.create = function (stream, callback) {
-    $.getJSON(this.url(stream, 'new'), function (data) {
-      callback(data);
+  Evercam.Stream.prototype.by_id = function (id, callback) {
+    $.getJSON(this.url(id), function (data) {
+      callback(data.streams[0]);
     });
   };
 
-  Evercam.Snapshot.prototype.fetchSnapshotData = function () {
-    var snapshotsUrl = Evercam.apiUrl +
-      '/streams/' + this.name + '/snapshots/new';
+  Evercam.Stream.prototype.create = function (params, callback) {
+    $.post(this.url(), params, function (data) {
+      callback(data.streams[0]);
+    });
+  }
 
+  Evercam.Stream.prototype.selectEndpoint = function () {
     var self = this;
+    testCROS(this.data.endpoints[0] + this.data.snapshots.jpg, function(available) {
+      self.endpoint = self.data.endpoints[0];
+      if (available) {
+        self.useProxy = false;
+      }
+      self.onUp();
+    });
 
-    jQuery.ajax({
-      url: snapshotsUrl,
+  };
+
+  Evercam.Stream.prototype.fetchSnapshotData = function () {
+    var self = this;
+      self.data =  {
+      "id": "teststream",
+      "owner": "joeyb",
+      "created_at": 1387370779,
+      "updated_at": 1387370779,
+      "endpoints": ["http://89.101.225.158:8105"],
+      "is_public": true,
+      "snapshots": {
+        "jpg": "/onvif/snapshot"
+      },
+      "auth": {
+        "basic": {
+          "username": "admin",
+          "password": "mehcam"
+        }
+      }
+    }
+    this.selectEndpoint();
+
+//    this.by_id(this.name, function(stream) {
+      //self.data = stream;
+//    })
+  };
+
+  function testCROS(url, callback) {
+    if (!$.support.cors) return false;
+
+    $.ajax({
+      url: url,
       xhrFields: {
         withCredentials: true
       },
-      statusCode: {
-        200: function (resp) {
-          self.up = true;
-          self.data = resp;
-          self.onUp();
-        },
-        401: function (resp) {
-          self.up = true;
-          self.onAuth();
-        },
-        404: function (resp) {
-          self.up = false;
-        }
+
+      success: function() {
+        callback(true);
+      },
+
+      error: function() {
+        callback(false);
       }
     });
+
   };
 
   function base64Encode(str) {
@@ -168,27 +192,29 @@
     return out;
   }
 
-  Evercam.Snapshot.prototype.isUp = function (callback) {
+  Evercam.Stream.prototype.isUp = function (callback) {
     this.onUp = callback;
   };
 
-  Evercam.Snapshot.prototype.needsAuth = function (callback) {
+  Evercam.Stream.prototype.needsAuth = function (callback) {
     this.onAuth = callback;
   };
 
-  Evercam.Snapshot.prototype.run = function () {
+  Evercam.Stream.prototype.run = function () {
     this.fetchSnapshotData();
   }
 
-  Evercam.Snapshot.prototype.imgUrl = function () {
-    if (this.up) {
-      this.timestamp = new Date().getTime();
-      var uri = Evercam.proxyUrl + 'snapshot?url=' +  this.data.uris.external +
-        this.data.formats.jpg.path + '?' +
+  Evercam.Stream.prototype.imgUrl = function () {
+    var uri = '';
+    this.timestamp = new Date().getTime();
+    if (this.useProxy) {
+      uri = Evercam.proxyUrl + 'snapshot?url=' +  this.endpoint +
+        this.data.snapshots.jpg + '?' +
         this.timestamp + '&auth=' + base64Encode(this.data.auth.basic.username + ":" + this.data.auth.basic.password);
-
-      return uri;
+    } else {
+      uri = this.endpoint + this.data.snapshots.jpg;
     }
+    return uri;
   };
 
   $.fn.evercam = function(type, opts) {
@@ -199,12 +225,12 @@
     }, opts);
 
     var $img = $(this);
-    var snapshot = new Evercam.Snapshot(settings.name);
+    var stream = new Evercam.Stream(settings.name);
     var watcher = null;
 
     var updateImage = function() {
       watcher = setTimeout(updateImage, 5000);
-      $img.attr('src', snapshot.imgUrl());
+      $img.attr('src', stream.imgUrl());
     }
 
     // check img auto refresh
@@ -213,7 +239,7 @@
       clearTimeout(watcher);
 
       if(settings.refresh > 0) {
-        var loading = new Date().getTime() - snapshot.timestamp;
+        var loading = new Date().getTime() - stream.timestamp;
         var delay = settings.refresh - loading;
         setTimeout(updateImage, delay);
       }
@@ -222,15 +248,16 @@
       console.log('abort');
     });
 
-    snapshot.isUp(function() {
+    stream.isUp(function() {
+      console.log('update');
       updateImage();
     });
 
-    snapshot.needsAuth(function() {
-      console.log(snapshot.name + ' requires authorization to view');
+    stream.needsAuth(function() {
+      console.log(stream.name + ' requires authorization to view');
     });
 
-    snapshot.run();
+    stream.run();
     return this;
 
   };
